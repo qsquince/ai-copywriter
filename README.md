@@ -20,8 +20,7 @@
 *   **数据持久化**：LocalStorage (浏览器本地存储)
 
 ## 🎥 在线体验与演示
-*   **项目在线地址**：`https://qsquince.github.io/ai-copywriter/`  
-*   **GitHub 仓库**：https://github.com/qsquince/ai-copywriter
+*   **项目在线体验**：https://qsquince.github.io/ai-copywriter/  
 
 ## 📋 使用说明
 1.  在线打开项目，填写“产品名称”、“核心卖点”等信息。
