@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>AI 小红书文案生成器 · 皇家小虎专业版</title>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #fef9f0 0%, #fff7ed 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 24px;
+            color: #2c3e2f;
+            min-height: 100vh;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 24px;
+        }
+        .left-panel, .right-panel {
+            background: white;
+            border-radius: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        .right-panel { display: flex; flex-direction: column; height: fit-content; }
+        header {
+            background: linear-gradient(135deg, #e05a2a 0%, #c14b1f 100%);
+            color: white;
+            padding: 24px 32px;
+            text-align: center;
+        }
+        header h1 { font-size: 1.8rem; font-weight: 700; }
+        header p { opacity: 0.92; margin-top: 4px; font-size: 0.85rem; }
+        .form-panel { padding: 28px; display: flex; flex-direction: column; gap: 20px; }
+        .field { display: flex; flex-direction: column; gap: 6px; }
+        .field label { font-weight: 600; font-size: 0.8rem; color: #4a5b4a; }
+        .field input, .field select, .field textarea {
+            padding: 12px 16px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 24px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            background: white;
+        }
+        .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        button {
+            background: linear-gradient(135deg, #e05a2a 0%, #c14b1f 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 40px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .result-area { background: #faf7f0; padding: 24px 28px; border-top: 1px solid #e9e0cf; }
+        .output {
+            background: white;
+            border-radius: 24px;
+            padding: 20px;
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            border: 1px solid #e9e0cf;
+            min-height: 200px;
+        }
+        .copy-btn, .image-btn {
+            margin-top: 12px;
+            margin-right: 12px;
+            padding: 8px 20px;
+            font-size: 0.85rem;
+            display: inline-block;
+        }
+        .image-btn { background: #2c5e2a; }
+        .image-preview {
+            margin-top: 20px;
+            text-align: center;
+            background: #fef3e8;
+            border-radius: 24px;
+            padding: 12px;
+        }
+        .image-preview img {
+            max-width: 100%;
+            border-radius: 24px;
+            max-height: 300px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .history-list { padding: 20px; max-height: 500px; overflow-y: auto; }
+        .history-item {
+            background: #faf7f0;
+            border-radius: 20px;
+            padding: 12px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            border-left: 4px solid #e05a2a;
+        }
+        .batch-area { padding: 20px; border-top: 1px solid #e9e0cf; }
+        .file-upload {
+            background: #fef3e8;
+            border: 2px dashed #e05a2a;
+            border-radius: 24px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 12px;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px;
+            color: #e05a2a;
+            font-weight: 500;
+        }
+        @media (max-width: 1000px) { .main-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="main-grid">
+        <div class="left-panel">
+            <header>
+                <h1>🍠 AI 小红书文案生成器</h1>
+                <p>皇家小虎 · 专业版 | 文案 + 配图生成</p>
+            </header>
+            <div class="form-panel">
+                <div class="field"><label>🍗 产品名称</label><input type="text" id="productName" value="皇家小虎火山石烤肠"></div>
+                <div class="field"><label>✨ 核心卖点</label><input type="text" id="sellingPoints" value="肉含量≥85%, 一口爆汁, 无添加防腐剂"></div>
+                <div class="field"><label>🎯 目标人群</label><input type="text" id="targetAudience" value="上班族, 宝妈"></div>
+                <div class="row-2">
+                    <div class="field"><label>✍️ 风格</label><select id="style"><option value="种草">🔥 种草</option><option value="教程">📖 教程</option><option value="测评">🔍 测评</option></select></div>
+                    <div class="field"><label>📏 字数</label><input type="number" id="wordCount" value="250"></div>
+                </div>
+                <button id="generateBtn">🚀 生成文案</button>
+            </div>
+            <div class="result-area">
+                <div class="output" id="output">等待生成...</div>
+                <div>
+                    <button class="copy-btn" id="copyBtn">📋 复制文案</button>
+                    <button class="image-btn" id="generateImageBtn">🎨 生成配图</button>
+                </div>
+                <div id="imagePreview" class="image-preview" style="display: none;">
+                    <strong>📸 AI 生成配图</strong><br>
+                    <img id="generatedImage" src="" alt="配图">
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <header style="padding: 16px 20px;"><h1 style="font-size: 1.2rem;">📚 历史记录</h1><p>点击恢复文案+配图</p></header>
+            <div id="historyList" class="history-list">暂无记录</div>
+            <div class="batch-area">
+                <button id="clearHistoryBtn" style="background: #8b6b4d;">🗑️ 清空历史</button>
+                <hr style="margin: 12px 0;">
+                <div style="font-weight: 600;">📎 批量生成 (Excel)</div>
+                <div class="file-upload">
+                    <input type="file" id="excelInput" accept=".xlsx, .xls, .csv" style="display: none;">
+                    <button id="uploadExcelBtn">📂 上传 Excel</button>
+                </div>
+                <div id="batchProgress" style="font-size: 0.7rem; margin-top: 8px;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="loading" id="loading">🤖 AI 正在创作中...</div>
+</div>
+
+<script>
+    // ==================== 配置区 ====================
+    const WORKER_URL = 'https://dabai.qingshanw912.workers.dev/';   // 你的 Worker 根地址（会自动拼接 / 和 /generate-image）
+    
+    let currentImagePrompt = '';   // 当前配图提示词（用于生成图片）
+    let currentContent = '';        // 当前文案内容
+    let currentProduct = '';
+    let currentStyle = '';
+
+    // ==================== 历史记录管理 ====================
+    let history = [];
+    function loadHistory() {
+        const stored = localStorage.getItem('royal_tiger_history');
+        if (stored) history = JSON.parse(stored);
+        renderHistory();
+    }
+    function saveHistory() {
+        localStorage.setItem('royal_tiger_history', JSON.stringify(history.slice(0, 50)));
+        renderHistory();
+    }
+    function addToHistory(product, content, imagePrompt, imageUrl = '') {
+        history.unshift({
+            id: Date.now(),
+            product,
+            content,
+            imagePrompt,
+            imageUrl,
+            timestamp: new Date().toLocaleString()
+        });
+        saveHistory();
+    }
+    function renderHistory() {
+        const container = document.getElementById('historyList');
+        if (!history.length) {
+            container.innerHTML = '<div style="color:#aaa;text-align:center;">暂无记录</div>';
+            return;
+        }
+        container.innerHTML = history.map(item => `
+            <div class="history-item" data-id="${item.id}">
+                <strong>${escapeHtml(item.product)}</strong>
+                <p>${escapeHtml(item.content.substring(0, 80))}...</p>
+                <div style="font-size:0.6rem;">${item.timestamp}</div>
+            </div>
+        `).join('');
+        document.querySelectorAll('.history-item').forEach(el => {
+            el.addEventListener('click', () => {
+                const id = parseInt(el.dataset.id);
+                const found = history.find(h => h.id === id);
+                if (found) {
+                    document.getElementById('output').innerText = found.content;
+                    currentContent = found.content;
+                    currentProduct = found.product;
+                    currentImagePrompt = found.imagePrompt;
+                    if (found.imageUrl) {
+                        const img = document.getElementById('generatedImage');
+                        img.src = found.imageUrl;
+                        document.getElementById('imagePreview').style.display = 'block';
+                    } else {
+                        document.getElementById('imagePreview').style.display = 'none';
+                    }
+                }
+            });
+        });
+    }
+    function escapeHtml(str) { return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
+
+    // 生成配图提示词（用于调用图片生成接口）
+    function buildImagePrompt(product, style) {
+        let styleDesc = '';
+        if (style === '种草') styleDesc = '真实场景，食欲感，暖色调，美食摄影';
+        else if (style === '教程') styleDesc = '步骤图，明亮厨房背景，干净整洁';
+        else styleDesc = '对比图，展示产品优势，商业摄影';
+        return `${product} ${styleDesc}，4K，高品质，白色背景，主视觉突出`;
+    }
+
+    // ==================== 调用 Worker API ====================
+    // 生成文案（调用 Worker 根路由）
+    async function generateCopy(product, points, audience, style, wordCount) {
+        const res = await fetch(WORKER_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ product, points, audience, style, wordCount })
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error);
+        return data.content;
+    }
+
+    // 生成图片（调用 Worker 的 /generate-image 路由）
+    async function generateImage(prompt) {
+        const res = await fetch(`${WORKER_URL}generate-image`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt })
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error);
+        return data.imageUrl;   // 返回图片 URL
+    }
+
+    // ==================== 主流程 ====================
+    // 生成文案
+    async function handleGenerate() {
+        const product = document.getElementById('productName').value.trim();
+        const points = document.getElementById('sellingPoints').value.trim();
+        const audience = document.getElementById('targetAudience').value.trim();
+        const style = document.getElementById('style').value;
+        const wordCount = parseInt(document.getElementById('wordCount').value);
+        if (!product) return alert('请输入产品名称');
+
+        const loading = document.getElementById('loading');
+        loading.style.display = 'block';
+        try {
+            const content = await generateCopy(product, points, audience, style, wordCount);
+            document.getElementById('output').innerText = content;
+            currentContent = content;
+            currentProduct = product;
+            currentStyle = style;
+            currentImagePrompt = buildImagePrompt(product, style);
+            // 清除旧图片预览
+            document.getElementById('imagePreview').style.display = 'none';
+            // 保存到历史（暂不包含图片URL）
+            addToHistory(product, content, currentImagePrompt, '');
+        } catch (err) {
+            alert('生成失败：' + err.message);
+        } finally {
+            loading.style.display = 'none';
+        }
+    }
+
+    // 生成配图（基于当前的配图提示词）
+    async function handleGenerateImage() {
+        if (!currentImagePrompt) {
+            alert('请先生成文案');
+            return;
+        }
+        const loading = document.getElementById('loading');
+        loading.style.display = 'block';
+        try {
+            const imageUrl = await generateImage(currentImagePrompt);
+            const img = document.getElementById('generatedImage');
+            img.src = imageUrl;
+            document.getElementById('imagePreview').style.display = 'block';
+            // 更新当前历史记录中的图片URL（最新一条相同产品的记录）
+            const latestIndex = history.findIndex(h => h.product === currentProduct && h.content === currentContent);
+            if (latestIndex !== -1) {
+                history[latestIndex].imageUrl = imageUrl;
+                saveHistory();
+            }
+        } catch (err) {
+            alert('图片生成失败：' + err.message);
+        } finally {
+            loading.style.display = 'none';
+        }
+    }
+
+    // 复制文案
+    async function copyContent() {
+        const text = document.getElementById('output').innerText;
+        if (!text || text === '等待生成...') return;
+        await navigator.clipboard.writeText(text);
+        alert('文案已复制');
+    }
+
+    // ==================== 批量生成 ====================
+    async function batchGenerate(rows) {
+        for (let i = 0; i < rows.length; i++) {
+            const r = rows[i];
+            document.getElementById('batchProgress').innerText = `批量中: ${i+1}/${rows.length}`;
+            try {
+                const content = await generateCopy(r.product, r.points, r.audience, r.style, r.wordCount);
+                const imgPrompt = buildImagePrompt(r.product, r.style);
+                addToHistory(r.product, content, imgPrompt, '');
+                await new Promise(r => setTimeout(r, 800));
+            } catch (err) {
+                console.error('批量失败:', r.product, err);
+            }
+        }
+        document.getElementById('batchProgress').innerText = '批量完成';
+        setTimeout(() => document.getElementById('batchProgress').innerText = '', 3000);
+    }
+
+    // Excel 上传处理
+    function handleExcel(file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(sheet);
+            const mapped = rows.map(row => ({
+                product: row['产品名称'] || row['product'] || '',
+                points: row['核心卖点'] || row['points'] || '',
+                audience: row['目标人群'] || row['audience'] || '',
+                style: row['风格'] || row['style'] || '种草',
+                wordCount: parseInt(row['字数'] || row['wordCount'] || 200)
+            })).filter(r => r.product);
+            if (mapped.length) batchGenerate(mapped);
+            else alert('Excel 无有效数据');
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    // ==================== 绑定事件 ====================
+    document.getElementById('generateBtn').addEventListener('click', handleGenerate);
+    document.getElementById('copyBtn').addEventListener('click', copyContent);
+    document.getElementById('generateImageBtn').addEventListener('click', handleGenerateImage);
+    document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+        if (confirm('清空所有历史记录？')) {
+            history = [];
+            saveHistory();
+        }
+    });
+    document.getElementById('uploadExcelBtn').addEventListener('click', () => {
+        document.getElementById('excelInput').click();
+    });
+    document.getElementById('excelInput').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) handleExcel(file);
+        e.target.value = '';
+    });
+
+    loadHistory();
+    document.getElementById('generateImageBtn').style.display = 'inline-block';
+</script>
+</body>
+</html>
