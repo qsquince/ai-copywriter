@@ -30,5 +30,5 @@
 4.  点击右侧历史记录，可随时调取之前的作品。
 5.  (批量功能) 下载提供的 Excel 模板，填入数据后上传即可。
 <img width="1219" height="923" alt="image" src="https://github.com/user-attachments/assets/5f2a0dbc-c816-468b-a275-ec7c34c340a6" />
-<img width="1280" height="282" alt="image" src="https://github.com/user-attachments/assets/6a186fac-777d-471b-bde0-965b3c19bc2b" />
-<img width="417" height="278" alt="image" src="https://github.com/user-attachments/assets/2df6766c-93d5-4401-aeb0-eaec6eb96ebe" />
+<img width="618" height="211" alt="image" src="https://github.com/user-attachments/assets/8752f31d-70c9-49a0-bab4-32bf4c3ceb4e" />
+
